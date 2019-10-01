@@ -81,11 +81,6 @@ four_eq = Refl
 plus_reduces_Sk : (k, m: Nat) -> plus (S k) m = S (plus k m)
 plus_reduces_Sk k m = Refl
 
-idris_not_php : 2 = "2"
-
-data Nat2 : Type where
-    Z : Nat2
-    S : Nat2 -> Nat2
 
 nat_induction : (P : Nat -> Type) ->
     (base: P Z) ->
@@ -126,19 +121,54 @@ add (S k) m = S (add k m)
 
 prove_works : (n : Nat) -> (m : Nat) -> add n m = n + m
 prove_works Z m = Refl
-prove_works (S k) m = eqSucc (add k m) (k + m) (prove_works k m)
+prove_works (S k) m = cong (prove_works k m)
 
-euler_sum : (n : Nat) -> Nat
-euler_sum Z = Z
-euler_sum (S k)  = (S k) + euler_sum k
+total 
+tn_eval : (n : Nat) -> Nat
+tn_eval Z = Z
+tn_eval (S k)  = (S k) + tn_eval k
 
-fast_euler : (n: Nat) -> Nat
-fast_euler Z = Z
-fast_euler (S k) = div ((S k) * ((S k) - 1)) 2
+total 
+tn_closed : (n: Nat) -> Nat
+tn_closed Z = Z
+tn_closed (S k) = divNatNZ ((S k) * ((S k) - 1)) 2 SIsNotZ
 
-euler_sum_proof_rhs_1 : fast_euler 0 = 0
-euler_sum_proof_rhs_1 = ?what_should_this_be
+total 
+tn_closed_proof : (n : Nat) -> (tn_eval n) = (tn_closed n)
+tn_closed_proof Z = Refl
+tn_closed_proof (S k) = let rec = tn_closed_proof {n=k} in ?what
 
-euler_sum_proof : (n : Nat) -> (fast_euler n) = (euler_sum n)
-euler_sum_proof Z = euler_sum_proof_rhs_1
-euler_sum_proof (S k) = ?euler_sum_proof_rhs_2
+
+--- Proofs involving square numbers
+
+total mult_eval : (n: Nat) -> (m: Nat) -> Nat 
+mult_eval Z m = Z
+mult_eval (S k) m = m + (mult_eval k m)
+
+total mult_proof : (n: Nat) -> (m: Nat) -> (mult_eval n m) = (n * m) 
+mult_proof Z Z = Refl
+mult_proof Z m = Refl
+mult_proof (S k) m = cong (mult_proof k m)
+
+
+total sq_eval : (n : Nat) -> Nat 
+sq_eval Z = Z 
+sq_eval (S k) = (sq_eval k) + (S k) + k
+
+total sq_mult : (n : Nat) -> sq_eval n = mult_eval n n 
+sq_mult Z = Refl
+sq_mult (S k) = ?sq_mult_rhs_2
+
+total sq_eval_induc : (n : Nat) -> (sq_eval (S n)) = (sq_eval n) + (S n) + n
+sq_eval_induc Z = Refl
+sq_eval_induc (S k) = Refl
+
+
+total sq_prf : (x: Nat) -> (x * x) + (S (x + x)) = (S x) * (S x) 
+sq_prf Z = Refl
+sq_prf (S k) = cong (sq_prf k)
+
+total 
+sq_closed_proof : (n: Nat) -> (sq_eval n) = n * n
+sq_closed_proof Z = Refl
+sq_closed_proof (S k) = let rec = sq_closed_proof k in rewrite rec in ?hole
